@@ -46,6 +46,18 @@ class KeycloakUser(BaseModel):
     attributes: Optional[dict]
 
 
+class UsernamePassword(BaseModel):
+    """Represents a request body that contains username and password
+
+    Attributes:
+        username (str): Username
+        password (str): Password, masked by swagger
+    """
+
+    username: str
+    password: SecretStr
+
+
 class OIDCUser(BaseModel):
     """Represents a user object of Keycloak, parsed from access token
 

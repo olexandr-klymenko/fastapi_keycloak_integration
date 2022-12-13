@@ -27,9 +27,7 @@ class UpdateUserLocaleException(MandatoryActionException):
     requiredAction"""
 
     def __init__(self) -> None:
-        super().__init__(
-            detail="This user can't login until he updated his locale"
-        )
+        super().__init__(detail="This user can't login until he updated his locale")
 
 
 class ConfigureTOTPException(MandatoryActionException):
@@ -37,9 +35,7 @@ class ConfigureTOTPException(MandatoryActionException):
     requiredAction"""
 
     def __init__(self) -> None:
-        super().__init__(
-            detail="This user can't login until he configured TOTP"
-        )
+        super().__init__(detail="This user can't login until he configured TOTP")
 
 
 class VerifyEmailException(MandatoryActionException):
@@ -47,9 +43,7 @@ class VerifyEmailException(MandatoryActionException):
     requiredAction"""
 
     def __init__(self) -> None:
-        super().__init__(
-            detail="This user can't login until he verified his email"
-        )
+        super().__init__(detail="This user can't login until he verified his email")
 
 
 class UpdatePasswordException(MandatoryActionException):
@@ -57,9 +51,7 @@ class UpdatePasswordException(MandatoryActionException):
     requiredAction"""
 
     def __init__(self) -> None:
-        super().__init__(
-            detail="This user can't login until he updated his password"
-        )
+        super().__init__(detail="This user can't login until he updated his password")
 
 
 class UpdateProfileException(MandatoryActionException):
@@ -67,6 +59,4 @@ class UpdateProfileException(MandatoryActionException):
     requiredAction"""
 
     def __init__(self) -> None:
-        super().__init__(
-            detail="This user can't login until he updated his profile"
-        )
+        super().__init__(detail="This user can't login until he updated his profile")

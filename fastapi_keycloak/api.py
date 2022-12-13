@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import functools
+import json
 from json import JSONDecodeError
 from typing import Callable, List, Type
 from urllib.parse import urlencode
@@ -13,11 +14,8 @@ from jose.exceptions import JWTClaimsError
 from pydantic import BaseModel
 from requests import Response
 
-from .exceptions import (ConfigureTOTPException, KeycloakError,
-                         MandatoryActionException, UpdatePasswordException,
-                         UpdateProfileException, UpdateUserLocaleException,
-                         VerifyEmailException)
-from .model import KeycloakGroup, KeycloakToken, KeycloakUser, OIDCUser
+from .exceptions import KeycloakError
+from .model import KeycloakToken, OIDCUser
 
 
 def result_or_error(
@@ -196,9 +194,7 @@ class FastAPIKeycloak:
                 HTTPException: If any role required is not contained within the roles of the users
             """
             try:
-                decoded_token = self._decode_token(
-                    token=token, audience="account"
-                )
+                decoded_token = self._decode_token(token=token, audience="account")
             except JWTError as err:
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
@@ -246,6 +242,42 @@ class FastAPIKeycloak:
         return f"-----BEGIN PUBLIC KEY-----\n{public_key}\n-----END PUBLIC KEY-----"
 
     @result_or_error(response_model=KeycloakToken)
+    def user_login(self, username: str, password: str) -> KeycloakToken:
+        """Models the password OAuth2 flow. Exchanges username and password for an access token. Will raise detailed
+        errors if login fails due to requiredActions
+
+        Args:
+            username (str): Username used for login
+            password (str): Password of the user
+
+        Returns:
+            KeycloakToken: If the exchange succeeds
+
+        Raises:
+            HTTPException: If the credentials did not match any user
+            MandatoryActionException: If the login is not possible due to mandatory actions
+            KeycloakError: If the resulting response is not a successful HTTP-Code (>299, != 400, != 401)
+
+        Notes:
+            - To avoid calling this multiple times, you may want to check all requiredActions of the user if it fails
+            due to a (sub)instance of an MandatoryActionException
+        """
+        headers = {"Content-Type": "application/x-www-form-urlencoded"}
+        data = {
+            "client_id": self.client_id,
+            "client_secret": self.client_secret,
+            "username": username,
+            "password": password,
+            "grant_type": "password",
+        }
+        response = requests.post(
+            url=self.token_uri, headers=headers, data=data, timeout=self.timeout
+        )
+        if response.status_code == 401:
+            raise HTTPException(status_code=401, detail="Invalid user credentials")
+        return KeycloakToken(**json.loads(response.content))
+
+    @result_or_error(response_model=KeycloakToken)
     def exchange_authorization_code(
         self, session_state: str, code: str
     ) -> KeycloakToken:
@@ -272,12 +304,13 @@ class FastAPIKeycloak:
             "grant_type": "authorization_code",
             "redirect_uri": self.callback_uri,
         }
-        return requests.post(
+        response = requests.post(
             url=self.token_uri,
             headers=headers,
             data=data,
             timeout=self.timeout,
         )
+        return KeycloakToken(**json.loads(response.content))
 
     @functools.cached_property
     def login_uri(self):
