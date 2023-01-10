@@ -9,6 +9,8 @@ services:
       POSTGRES_PASSWORD: testkeycloakpassword
     restart:
       always
+    volumes:
+      - /tmp/data:/var/lib/postgresql/data
 
   keycloak:
     image: jboss/keycloak:16.1.0

@@ -1,16 +1,17 @@
 import uvicorn
 from fastapi import Depends, FastAPI
 
+from fastapi_keycloak import conf
 from fastapi_keycloak.api import FastAPIKeycloak
 from fastapi_keycloak.model import OIDCUser, UsernamePassword
 
 app = FastAPI()
 idp = FastAPIKeycloak(
-    server_url="http://127.0.0.1:8085/auth",
-    client_id="test-client",
-    client_secret="eMWLOOjSuy64aA62QA3gYmnv94XgHlK8",
-    realm="Test",
-    callback_uri="http://localhost:8081/callback",
+    server_url=conf.KEYCLOAK_URL,
+    client_id=conf.CLIENT_ID,
+    client_secret=conf.CLIENT_SECRET,
+    realm=conf.REALM,
+    callback_uri=conf.CALLBACK_URI,
 )
 idp.add_swagger_config(app)
 
